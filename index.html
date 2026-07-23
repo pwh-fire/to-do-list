@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 할 일 관리</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Pretendard Font */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animations */
+        .task-item {
+            transition: all 0.2s ease-in-out;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Checkbox custom style */
+        .custom-checkbox:checked + div {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .custom-checkbox:checked + div svg {
+            display: block;
+        }
+        
+        /* Date picker custom style */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(1);
+            opacity: 0.8;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        /* 캘린더 모달 애니메이션 */
+        #calendar-modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        #calendar-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #calendar-modal.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* 캘린더 셀 스타일 */
+        .calendar-cell {
+            min-height: 80px;
+            transition: background-color 0.2s;
+        }
+        
+        .calendar-cell:hover {
+            background-color: #f8fafc;
+        }
+        
+        .calendar-task-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+        
+        .calendar-task-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-slate-800 relative">
+
+    <!-- App Container -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-100" style="height: 85vh; max-height: 850px;">
+        
+        <!-- Header Section -->
+        <div class="bg-indigo-600 p-6 text-white shrink-0">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-check-double"></i> 일정 관리
+                </h1>
+                <button id="btn-toggle-calendar" class="p-2 bg-indigo-500 hover:bg-indigo-400 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium">
+                    <i class="far fa-calendar-alt"></i> 달력 보기
+                </button>
+            </div>
+            
+            <!-- Date Navigator -->
+            <div class="flex items-center justify-between bg-indigo-700/50 rounded-xl p-2 backdrop-blur-sm border border-indigo-500/50">
+                <button id="btn-prev" class="p-2 px-3 hover:bg-white/20 rounded-lg transition">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="relative font-medium text-lg flex items-center justify-center">
+                    <input type="date" id="date-picker" class="bg-transparent text-center cursor-pointer outline-none appearance-none w-full text-white">
+                </div>
+                <button id="btn-next" class="p-2 px-3 hover:bg-white/20 rounded-lg transition">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mt-5">
+                <div class="flex justify-between text-sm mb-2 text-indigo-100 font-medium">
+                    <span id="date-display-text">오늘의 달성률</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="w-full bg-indigo-900/40 rounded-full h-2.5 shadow-inner">
+                    <div id="progress-bar" class="bg-gradient-to-r from-blue-300 to-white h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task List Area -->
+        <div class="flex-1 overflow-y-auto p-5 bg-slate-50" id="task-container">
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center h-full text-slate-400">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-coffee text-3xl text-slate-300"></i>
+                </div>
+                <p class="font-medium text-slate-500">등록된 일정이 없습니다</p>
+                <p class="text-sm mt-1 text-slate-400">아래에서 새로운 할 일을 추가해보세요!</p>
+            </div>
+            
+            <!-- List -->
+            <ul id="task-list" class="space-y-3 pb-4">
+                <!-- Javascript will inject tasks here -->
+            </ul>
+        </div>
+
+        <!-- Input Section -->
+        <div class="p-5 bg-white border-t border-slate-100 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
+            <form id="add-form" class="flex gap-2">
+                <input type="text" id="task-input" autocomplete="off" placeholder="무엇을 해야 하나요?" 
+                    class="flex-1 min-w-[120px] px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition text-slate-700">
+                <input type="time" id="task-time" title="시간 설정(선택)" class="w-36 sm:w-40 px-2 sm:px-3 py-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition text-slate-700 font-medium text-center shrink-0">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 active:transform active:scale-95 text-white px-5 py-3.5 rounded-xl font-medium transition shadow-md shadow-indigo-200/50 flex items-center justify-center shrink-0">
+                    <i class="fas fa-plus text-lg"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Calendar Modal (Full Screen Overlay) -->
+    <div id="calendar-modal" class="fixed inset-0 z-50 hide bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden max-h-full">
+            
+            <!-- Calendar Header -->
+            <div class="bg-slate-800 p-4 flex justify-between items-center text-white shrink-0 rounded-t-2xl">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-2xl font-bold" id="calendar-title">2026년 7월</h2>
+                    <div class="flex gap-2">
+                        <button id="cal-btn-prev" class="p-2 hover:bg-slate-700 rounded-lg transition">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="cal-btn-today" class="px-3 py-1 text-sm font-medium border border-slate-600 rounded-lg hover:bg-slate-700 transition">
+                            오늘
+                        </button>
+                        <button id="cal-btn-next" class="p-2 hover:bg-slate-700 rounded-lg transition">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <button id="btn-close-calendar" class="p-2 hover:bg-slate-700 rounded-lg transition text-slate-300 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Calendar Grid Layout -->
+            <div class="flex-1 overflow-auto bg-slate-50 p-2 sm:p-4">
+                <div class="grid grid-cols-7 border-t border-l border-slate-200 bg-white rounded-lg overflow-hidden shadow-sm">
+                    <!-- Day Headers -->
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-red-500 border-r border-b border-slate-200">일요일</div>
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-slate-700 border-r border-b border-slate-200">월요일</div>
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-slate-700 border-r border-b border-slate-200">화요일</div>
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-slate-700 border-r border-b border-slate-200">수요일</div>
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-slate-700 border-r border-b border-slate-200">목요일</div>
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-slate-700 border-r border-b border-slate-200">금요일</div>
+                    <div class="bg-slate-100 p-2 text-center text-sm font-bold text-blue-500 border-r border-b border-slate-200">토요일</div>
+
+                    <!-- Calendar Days (Injected via JS) -->
+                    <div id="calendar-grid-body" class="contents"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // State
+        let tasksData = JSON.parse(localStorage.getItem('my_todo_data')) || {};
+        let currentDate = getTodayString();
+        let calendarCurrentDate = new Date(currentDate); // 캘린더 표시용 기준 날짜
+
+        // DOM Elements - Main App
+        const datePicker = document.getElementById('date-picker');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const taskList = document.getElementById('task-list');
+        const emptyState = document.getElementById('empty-state');
+        const addForm = document.getElementById('add-form');
+        const taskInput = document.getElementById('task-input');
+        const taskTime = document.getElementById('task-time');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const dateDisplayText = document.getElementById('date-display-text');
+        
+        // DOM Elements - Calendar
+        const btnToggleCalendar = document.getElementById('btn-toggle-calendar');
+        const calendarModal = document.getElementById('calendar-modal');
+        const btnCloseCalendar = document.getElementById('btn-close-calendar');
+        const calendarTitle = document.getElementById('calendar-title');
+        const calendarGridBody = document.getElementById('calendar-grid-body');
+        const calBtnPrev = document.getElementById('cal-btn-prev');
+        const calBtnNext = document.getElementById('cal-btn-next');
+        const calBtnToday = document.getElementById('cal-btn-today');
+
+        // Initialize App
+        function init() {
+            datePicker.value = currentDate;
+            setupEventListeners();
+            render();
+        }
+
+        // Helpers
+        function getTodayString() {
+            // Adjust to local timezone
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            return (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+        }
+
+        function saveData() {
+            localStorage.setItem('my_todo_data', JSON.stringify(tasksData));
+        }
+
+        function formatDateToYYYYMMDD(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function changeDate(days) {
+            const dateObj = new Date(currentDate);
+            dateObj.setDate(dateObj.getDate() + days);
+            currentDate = dateObj.toISOString().split('T')[0];
+            datePicker.value = currentDate;
+            calendarCurrentDate = new Date(currentDate); // 캘린더 기준일도 동기화
+            render();
+        }
+
+        // Calendar Logic
+        function generateCalendar() {
+            calendarGridBody.innerHTML = '';
+            
+            const year = calendarCurrentDate.getFullYear();
+            const month = calendarCurrentDate.getMonth();
+            
+            calendarTitle.textContent = `${year}년 ${month + 1}월`;
+
+            // 해당 월의 첫째 날과 마지막 날
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            
+            const daysInMonth = lastDayOfMonth.getDate();
+            const firstDayOfWeek = firstDayOfMonth.getDay(); // 0: 일, 1: 월 ...
+
+            let currentDay = 1;
+            let totalCells = Math.ceil((daysInMonth + firstDayOfWeek) / 7) * 7; // 필요한 전체 셀 수 (빈 칸 포함)
+
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell border-r border-b border-slate-200 p-1 sm:p-2 relative flex flex-col gap-1 cursor-pointer';
+                
+                // 이전 달/다음 달의 빈 날짜 처리
+                if (i < firstDayOfWeek || currentDay > daysInMonth) {
+                    cell.classList.add('bg-slate-50', 'text-slate-400');
+                    // 선택적으로 날짜 숫자를 옅게 표시할 수 있지만, 예시 이미지처럼 빈 칸으로 둡니다.
+                } else {
+                    // 현재 달의 날짜
+                    const cellDate = new Date(year, month, currentDay);
+                    const cellDateString = formatDateToYYYYMMDD(cellDate);
+                    
+                    // 요일에 따른 날짜 색상 지정
+                    let dateColorClass = 'text-slate-700';
+                    if (i % 7 === 0) dateColorClass = 'text-red-500'; // 일요일
+                    if (i % 7 === 6) dateColorClass = 'text-blue-500'; // 토요일
+                    
+                    // 오늘 날짜 강조
+                    const todayStr = getTodayString();
+                    let dateHtml = `<span class="text-sm font-medium ${dateColorClass} mb-1 block">${currentDay}</span>`;
+                    
+                    if (cellDateString === todayStr) {
+                         dateHtml = `<span class="text-sm font-bold bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center mb-1">${currentDay}</span>`;
+                    }
+                    
+                    // 셀 선택 효과 (메인 화면에서 선택된 날짜)
+                    if(cellDateString === currentDate) {
+                        cell.classList.add('bg-indigo-50');
+                    }
+
+                    let tasksHtml = '<div class="flex flex-col gap-1 overflow-hidden flex-1">';
+                    
+                    // 해당 날짜의 할 일 렌더링
+                    if (tasksData[cellDateString]) {
+                        const tasks = tasksData[cellDateString];
+                        // 최대 4개까지만 표시 (UI 보호)
+                        const displayTasks = tasks.slice(0, 4);
+                        
+                        displayTasks.forEach(task => {
+                            const dotColor = task.completed ? 'bg-slate-400' : 'bg-indigo-500';
+                            const textColor = task.completed ? 'text-slate-400 line-through' : 'text-slate-700';
+                            
+                            const timeStr = task.time ? `<span class="text-[0.6rem] text-slate-400 ml-1 font-mono">[${task.time}]</span>` : '';
+
+                            tasksHtml += `
+                                <div class="flex items-center w-full px-1 py-0.5 rounded hover:bg-slate-100 transition-colors">
+                                    <span class="calendar-task-dot ${dotColor}"></span>
+                                    <span class="calendar-task-text ${textColor}" title="${task.text}">${task.text}${timeStr}</span>
+                                </div>
+                            `;
+                        });
+                        
+                        if (tasks.length > 4) {
+                            tasksHtml += `<div class="text-[0.65rem] text-slate-500 font-medium px-1">+${tasks.length - 4}개 더보기</div>`;
+                        }
+                    }
+                    
+                    tasksHtml += '</div>';
+
+                    cell.innerHTML = dateHtml + tasksHtml;
+                    
+                    // 셀 클릭 이벤트: 메인 화면 날짜 변경 후 모달 닫기
+                    cell.addEventListener('click', () => {
+                        currentDate = cellDateString;
+                        datePicker.value = currentDate;
+                        render();
+                        closeCalendarModal();
+                    });
+
+                    currentDay++;
+                }
+                
+                calendarGridBody.appendChild(cell);
+            }
+        }
+
+        function openCalendarModal() {
+            calendarCurrentDate = new Date(currentDate); // 캘린더 열 때 현재 선택된 달로 설정
+            generateCalendar();
+            calendarModal.classList.remove('hide');
+            calendarModal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        }
+
+        function closeCalendarModal() {
+            calendarModal.classList.remove('show');
+            calendarModal.classList.add('hide');
+            document.body.style.overflow = '';
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            datePicker.addEventListener('change', (e) => {
+                currentDate = e.target.value;
+                render();
+            });
+
+            btnPrev.addEventListener('click', () => changeDate(-1));
+            btnNext.addEventListener('click', () => changeDate(1));
+
+            addForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = taskInput.value.trim();
+                const time = taskTime.value;
+                if (!text) return;
+
+                if (!tasksData[currentDate]) {
+                    tasksData[currentDate] = [];
+                }
+
+                tasksData[currentDate].push({
+                    id: Date.now().toString(),
+                    text: text,
+                    time: time, // 시간 데이터 추가
+                    completed: false
+                });
+
+                taskInput.value = '';
+                taskTime.value = ''; // 입력 후 시간 초기화
+                saveData();
+                render();
+            });
+
+            // 캘린더 모달 이벤트
+            btnToggleCalendar.addEventListener('click', openCalendarModal);
+            btnCloseCalendar.addEventListener('click', closeCalendarModal);
+            
+            // 모달 바깥 배경 클릭 시 닫기
+            calendarModal.addEventListener('click', (e) => {
+                if (e.target === calendarModal) {
+                    closeCalendarModal();
+                }
+            });
+
+            // 캘린더 내 네비게이션
+            calBtnPrev.addEventListener('click', () => {
+                calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+                generateCalendar();
+            });
+
+            calBtnNext.addEventListener('click', () => {
+                calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+                generateCalendar();
+            });
+
+            calBtnToday.addEventListener('click', () => {
+                calendarCurrentDate = new Date();
+                generateCalendar();
+            });
+        }
+
+        // Action Functions
+        function toggleTask(id) {
+            const tasks = tasksData[currentDate];
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveData();
+                render();
+            }
+        }
+
+        function deleteTask(id) {
+            tasksData[currentDate] = tasksData[currentDate].filter(t => t.id !== id);
+            if (tasksData[currentDate].length === 0) {
+                delete tasksData[currentDate];
+            }
+            saveData();
+            render();
+        }
+
+        // Render Function
+        function render() {
+            const todayStr = getTodayString();
+            if(currentDate === todayStr) {
+                dateDisplayText.textContent = "오늘의 달성률";
+            } else {
+                dateDisplayText.textContent = "선택한 날의 달성률";
+            }
+
+            const tasks = tasksData[currentDate] || [];
+            
+            // Handle Empty State
+            if (tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                taskList.innerHTML = '';
+                updateProgress(0, 0);
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Render List
+            taskList.innerHTML = '';
+            let completedCount = 0;
+
+            // Sort: Incomplete first -> Time ascending (no-time tasks first)
+            const sortedTasks = [...tasks].sort((a, b) => {
+                if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                if (a.time && b.time) return a.time.localeCompare(b.time);
+                if (a.time) return 1;
+                if (b.time) return -1;
+                return 0;
+            });
+
+            sortedTasks.forEach(task => {
+                if(task.completed) completedCount++;
+
+                const li = document.createElement('li');
+                li.className = `task-item bg-white p-4 rounded-2xl border flex items-center justify-between gap-3 shadow-sm ${task.completed ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-200 hover:border-indigo-300'}`;
+                
+                let timeBadge = '';
+                if (task.time) {
+                    timeBadge = `<div class="text-xs font-medium mt-1 flex items-center gap-1 ${task.completed ? 'text-slate-400' : 'text-indigo-500'}">
+                                    <i class="far fa-clock"></i> ${task.time}
+                                 </div>`;
+                }
+
+                li.innerHTML = `
+                    <label class="flex items-start gap-3 cursor-pointer flex-1 group">
+                        <div class="relative flex items-center justify-center mt-0.5">
+                            <input type="checkbox" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+                            <div class="w-6 h-6 border-2 border-slate-300 rounded-lg flex items-center justify-center transition-colors group-hover:border-indigo-400 shrink-0">
+                                <svg class="w-4 h-4 text-white hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                        <div class="flex flex-col flex-1 overflow-hidden">
+                            <span class="text-[1.05rem] transition-all duration-200 break-all leading-tight mt-0.5 ${task.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${task.text}</span>
+                            ${timeBadge}
+                        </div>
+                    </label>
+                    <button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors focus:outline-none shrink-0">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                taskList.appendChild(li);
+            });
+
+            updateProgress(completedCount, tasks.length);
+        }
+
+        function updateProgress(completed, total) {
+            if (total === 0) {
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+                return;
+            }
+            const percentage = Math.round((completed / total) * 100);
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${percentage}%`;
+            
+            // Change progress bar color based on completion
+            if(percentage === 100) {
+                progressBar.classList.remove('from-blue-300', 'to-white');
+                progressBar.classList.add('from-green-400', 'to-emerald-300');
+            } else {
+                progressBar.classList.remove('from-green-400', 'to-emerald-300');
+                progressBar.classList.add('from-blue-300', 'to-white');
+            }
+        }
+
+        // Run
+        init();
+    </script>
+</body>
+</html>
