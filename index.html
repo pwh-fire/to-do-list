@@ -395,19 +395,30 @@
                         
                         // 엑셀 행을 순회하며 날짜와 내용 파싱 (유연하게 컬럼 탐색)
                         json.forEach((row, idx) => {
-                            if (idx === 0) return; // 헤더 스킵 가정
+                            if (!row || row.length === 0) return;
+                            
                             let dateStr = '';
                             let contentStr = '';
                             let timeStr = '';
 
                             row.forEach(cell => {
-                                if (!cell) return;
+                                if (cell === undefined || cell === null) return;
                                 const cellStr = String(cell).trim();
-                                // YYYY-MM-DD 또는 YYYY.MM.DD 형태 감지
-                                if (/^202[6-9][-\.]\d{1,2}[-\.]\d{1,2}/.test(cellStr)) {
-                                    dateStr = cellStr.replace(/\./g, '-');
-                                } else if (!contentStr && cellStr.length > 1) {
-                                    contentStr = cellStr;
+                                
+                                // 날짜 형식 감지 (YYYY-MM-DD, YYYY.MM.DD, YYYY/MM/DD 또는 엑셀 시리얼 넘버)
+                                if (/^202[6-9][-\.\/]\d{1,2}[-\.\/]\d{1,2}/.test(cellStr)) {
+                                    dateStr = cellStr.replace(/[\.\/]/g, '-');
+                                } else if (!dateStr && typeof cell === 'number' && cell > 40000) {
+                                    // 엑셀 날짜 시리얼 번호 처리 (필요시)
+                                    const excelDate = new Date((cell - (25567 + 2))*86400*1000);
+                                    dateStr = formatDateToYYYYMMDD(excelDate);
+                                } else if (!timeStr && /^\d{1,2}:\d{2}/.test(cellStr)) {
+                                    timeStr = cellStr;
+                                } else if (!contentStr && cellStr.length > 0) {
+                                    // 헤더 키워드(날짜, 할일, 상태 등)가 아닌 경우에만 내용으로 채택
+                                    if (!['날짜', '할 일', '할일', '시간', '상태'].includes(cellStr)) {
+                                        contentStr = cellStr;
+                                    }
                                 }
                             });
 
