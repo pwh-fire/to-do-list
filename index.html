@@ -15,10 +15,10 @@
         
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #0f172a;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -51,7 +51,7 @@
         }
 
         .calendar-cell {
-            min-height: 90px;
+            min-height: 105px;
             transition: background-color 0.2s;
         }
         
@@ -77,35 +77,39 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-2 sm:p-6 text-slate-800">
+<body class="flex items-center justify-center min-h-screen p-1 sm:p-3 text-slate-800">
 
-    <div class="w-full max-w-[1500px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-200" style="height: 92vh; max-height: 950px;">
+    <div class="w-full max-w-[1850px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-700/20" style="height: 97vh; max-height: 1100px;">
         
-        <!-- Left Section: Calendar View (70%) -->
-        <div class="w-full lg:w-[70%] bg-white flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 h-[50vh] lg:h-full shrink-0">
+        <!-- Left Section: Calendar View (68%) -->
+        <div class="w-full lg:w-[68%] bg-white flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 h-[52vh] lg:h-full shrink-0">
             <!-- Calendar Header -->
-            <div class="bg-slate-800 p-4 sm:p-6 flex justify-between items-center text-white shrink-0">
+            <div class="bg-slate-900 p-3 sm:p-5 flex flex-wrap justify-between items-center text-white shrink-0 gap-3">
                 <div class="flex items-center gap-3 sm:gap-4">
                     <h2 class="text-xl sm:text-2xl font-bold" id="calendar-title">2026년 7월</h2>
                     <div class="flex gap-1.5 sm:gap-2">
-                        <button id="cal-btn-prev" class="p-2 hover:bg-slate-700 rounded-lg transition">
+                        <button id="cal-btn-prev" class="p-2 hover:bg-slate-800 rounded-lg transition text-slate-300 hover:text-white">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button id="cal-btn-today" class="px-3 py-1 text-sm font-medium border border-slate-600 rounded-lg hover:bg-slate-700 transition">
+                        <button id="cal-btn-today" class="px-3 py-1 text-sm font-medium border border-slate-700 rounded-lg hover:bg-slate-800 transition text-slate-200">
                             오늘
                         </button>
-                        <button id="cal-btn-next" class="p-2 hover:bg-slate-700 rounded-lg transition">
+                        <button id="cal-btn-next" class="p-2 hover:bg-slate-800 rounded-lg transition text-slate-300 hover:text-white">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
-                <div class="text-xs sm:text-sm text-slate-300 font-medium hidden sm:block">
-                    <i class="far fa-calendar-alt mr-1"></i> 날짜를 클릭하여 일정을 관리하세요
+                <!-- Global Search Bar inside Header -->
+                <div class="relative flex-1 max-w-xs min-w-[200px]">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </span>
+                    <input type="text" id="global-search-input" placeholder="전체 일정 검색..." class="w-full pl-8 pr-4 py-1.5 text-xs sm:text-sm bg-slate-800 text-white placeholder-slate-400 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-400 transition">
                 </div>
             </div>
 
             <!-- Calendar Grid Layout -->
-            <div class="flex-1 overflow-auto bg-slate-50 p-2 sm:p-4">
+            <div class="flex-1 overflow-auto bg-slate-50 p-2 sm:p-3">
                 <div class="grid grid-cols-7 border-t border-l border-slate-200 bg-white rounded-lg overflow-hidden shadow-sm h-full">
                     <div class="bg-slate-100 p-2 text-center text-xs sm:text-sm font-bold text-red-500 border-r border-b border-slate-200">일</div>
                     <div class="bg-slate-100 p-2 text-center text-xs sm:text-sm font-bold text-slate-700 border-r border-b border-slate-200">월</div>
@@ -119,74 +123,72 @@
             </div>
         </div>
 
-        <!-- Right Section: Task Management (30%) -->
-        <div class="w-full lg:w-[30%] flex flex-col h-[50vh] lg:h-full bg-white">
+        <!-- Right Section: Task Management (32%) -->
+        <div class="w-full lg:w-[32%] flex flex-col h-[48vh] lg:h-full bg-white">
             
             <!-- Header Section -->
-            <div class="bg-indigo-600 p-4 sm:p-5 text-white shrink-0">
-                <div class="flex justify-between items-center mb-3">
-                    <h1 class="text-xl font-bold flex items-center gap-2">
-                        <i class="fas fa-check-double"></i> 선택한 일정
+            <div class="bg-indigo-600 p-4 text-white shrink-0">
+                <div class="flex justify-between items-center mb-2.5">
+                    <h1 class="text-lg font-bold flex items-center gap-2">
+                        <i class="fas fa-check-double"></i> <span id="panel-title-text">선택한 일정</span>
                     </h1>
-                    <div class="flex gap-2">
-                        <!-- Excel Import Button -->
-                        <label title="엑셀 일정 불러오기" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm cursor-pointer">
-                            <i class="fas fa-file-import text-yellow-300"></i> 엑셀 불러오기
+                    <div class="flex gap-1.5">
+                        <label title="엑셀 일정 불러오기" class="bg-indigo-700 hover:bg-indigo-800 text-white text-[11px] px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shadow-sm cursor-pointer">
+                            <i class="fas fa-file-import text-yellow-300"></i> 불러오기
                             <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden">
                         </label>
-                        <!-- Excel Export Button -->
-                        <button id="btn-export" title="엑셀로 내보내기" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
+                        <button id="btn-export" title="엑셀로 내보내기" class="bg-indigo-700 hover:bg-indigo-800 text-white text-[11px] px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shadow-sm">
                             <i class="fas fa-file-excel text-emerald-300"></i> 저장
                         </button>
                     </div>
                 </div>
                 
                 <!-- Date Navigator -->
-                <div class="flex items-center justify-between bg-indigo-700/50 rounded-xl p-2 backdrop-blur-sm border border-indigo-500/50">
-                    <button id="btn-prev" class="p-1.5 px-2.5 hover:bg-white/20 rounded-lg transition">
-                        <i class="fas fa-chevron-left text-sm"></i>
+                <div class="flex items-center justify-between bg-indigo-700/50 rounded-xl p-1.5 backdrop-blur-sm border border-indigo-500/50">
+                    <button id="btn-prev" class="p-1 px-2 hover:bg-white/20 rounded-lg transition text-sm">
+                        <i class="fas fa-chevron-left"></i>
                     </button>
-                    <div class="relative font-medium text-base flex items-center justify-center">
+                    <div class="relative font-medium text-sm flex items-center justify-center">
                         <input type="date" id="date-picker" class="bg-transparent text-center cursor-pointer outline-none appearance-none w-full text-white">
                     </div>
-                    <button id="btn-next" class="p-1.5 px-2.5 hover:bg-white/20 rounded-lg transition">
-                        <i class="fas fa-chevron-right text-sm"></i>
+                    <button id="btn-next" class="p-1 px-2 hover:bg-white/20 rounded-lg transition text-sm">
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
                 
                 <!-- Progress Bar -->
-                <div class="mt-3">
-                    <div class="flex justify-between text-xs sm:text-sm mb-1.5 text-indigo-100 font-medium">
+                <div class="mt-2.5">
+                    <div class="flex justify-between text-xs mb-1 text-indigo-100 font-medium">
                         <span id="date-display-text">달성률</span>
                         <span id="progress-text">0%</span>
                     </div>
-                    <div class="w-full bg-indigo-900/40 rounded-full h-2 shadow-inner">
-                        <div id="progress-bar" class="bg-gradient-to-r from-blue-300 to-white h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    <div class="w-full bg-indigo-900/40 rounded-full h-1.5 shadow-inner">
+                        <div id="progress-bar" class="bg-gradient-to-r from-blue-300 to-white h-1.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Task List Area -->
-            <div class="flex-1 overflow-y-auto p-4 bg-slate-50" id="task-container">
+            <div class="flex-1 overflow-y-auto p-3 bg-slate-50" id="task-container">
                 <div id="empty-state" class="hidden flex flex-col items-center justify-center h-full text-slate-400">
-                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3">
-                        <i class="fas fa-coffee text-2xl text-slate-300"></i>
+                    <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-2">
+                        <i class="fas fa-coffee text-xl text-slate-300"></i>
                     </div>
-                    <p class="font-medium text-slate-500 text-sm">등록된 일정이 없습니다</p>
-                    <p class="text-xs mt-1 text-slate-400">엑셀을 불러오거나 새로운 할 일을 추가해보세요!</p>
+                    <p class="font-medium text-slate-500 text-sm" id="empty-state-title">등록된 일정이 없습니다</p>
+                    <p class="text-xs mt-1 text-slate-400" id="empty-state-desc">새로운 할 일을 추가해보세요!</p>
                 </div>
                 
-                <ul id="task-list" class="space-y-2.5 pb-4"></ul>
+                <ul id="task-list" class="space-y-2 pb-2"></ul>
             </div>
 
             <!-- Input Section -->
-            <div class="p-4 bg-white border-t border-slate-100 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
+            <div class="p-3 bg-white border-t border-slate-100 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]" id="input-section-wrapper">
                 <form id="add-form" class="flex gap-2">
                     <input type="text" id="task-input" autocomplete="off" placeholder="무엇을 해야 하나요?" 
-                        class="flex-1 min-w-[90px] px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition text-slate-700 text-sm">
-                    <input type="time" id="task-time" title="시간 설정(선택)" class="w-36 px-2 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition text-slate-700 font-medium text-center shrink-0 text-sm">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 active:transform active:scale-95 text-white px-4 py-3 rounded-xl font-medium transition shadow-md shadow-indigo-200/50 flex items-center justify-center shrink-0">
-                        <i class="fas fa-plus text-base"></i>
+                        class="flex-1 min-w-[90px] px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition text-slate-700 text-sm">
+                    <input type="time" id="task-time" title="시간 설정(선택)" class="w-32 px-2 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition text-slate-700 font-medium text-center shrink-0 text-sm">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 active:transform active:scale-95 text-white px-3.5 py-2.5 rounded-xl font-medium transition shadow-md shadow-indigo-200/50 flex items-center justify-center shrink-0">
+                        <i class="fas fa-plus text-sm"></i>
                     </button>
                 </form>
             </div>
@@ -197,6 +199,7 @@
         let tasksData = JSON.parse(localStorage.getItem('my_todo_data')) || {};
         let currentDate = getTodayString();
         let calendarCurrentDate = new Date(currentDate);
+        let searchKeyword = ''; // 검색어 상태
 
         const datePicker = document.getElementById('date-picker');
         const btnPrev = document.getElementById('btn-prev');
@@ -205,12 +208,17 @@
         const excelFileInput = document.getElementById('excel-file-input');
         const taskList = document.getElementById('task-list');
         const emptyState = document.getElementById('empty-state');
+        const emptyStateTitle = document.getElementById('empty-state-title');
+        const emptyStateDesc = document.getElementById('empty-state-desc');
         const addForm = document.getElementById('add-form');
         const taskInput = document.getElementById('task-input');
         const taskTime = document.getElementById('task-time');
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
         const dateDisplayText = document.getElementById('date-display-text');
+        const globalSearchInput = document.getElementById('global-search-input');
+        const panelTitleText = document.getElementById('panel-title-text');
+        const inputSectionWrapper = document.getElementById('input-section-wrapper');
         
         const calendarTitle = document.getElementById('calendar-title');
         const calendarGridBody = document.getElementById('calendar-grid-body');
@@ -241,6 +249,7 @@
         }
 
         function changeDate(days) {
+            if (searchKeyword) return; // 검색 중에는 날짜 이동 제한
             const dateObj = new Date(currentDate);
             dateObj.setDate(dateObj.getDate() + days);
             currentDate = dateObj.toISOString().split('T')[0];
@@ -284,13 +293,19 @@
                          dateHtml = `<span class="text-xs sm:text-sm font-bold bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center mb-1">${currentDay}</span>`;
                     }
                     
-                    if (cellDateString === currentDate) {
+                    if (!searchKeyword && cellDateString === currentDate) {
                         cell.classList.add('bg-indigo-50/80', 'ring-2', 'ring-indigo-400', 'z-10');
                     }
 
                     let tasksHtml = '<div class="flex flex-col gap-1 overflow-hidden flex-1">';
                     if (tasksData[cellDateString]) {
-                        const tasks = tasksData[cellDateString];
+                        let tasks = tasksData[cellDateString];
+                        
+                        // 검색어가 있는 경우 캘린더에서도 하이라이트 필터 적용
+                        if (searchKeyword) {
+                            tasks = tasks.filter(t => t.text.toLowerCase().includes(searchKeyword.toLowerCase()));
+                        }
+
                         const displayTasks = tasks.slice(0, 3);
                         
                         displayTasks.forEach(task => {
@@ -314,6 +329,8 @@
 
                     cell.innerHTML = dateHtml + tasksHtml;
                     cell.addEventListener('click', () => {
+                        searchKeyword = '';
+                        globalSearchInput.value = '';
                         currentDate = cellDateString;
                         datePicker.value = currentDate;
                         render();
@@ -325,7 +342,13 @@
         }
 
         function setupEventListeners() {
+            globalSearchInput.addEventListener('input', (e) => {
+                searchKeyword = e.target.value.trim();
+                render();
+            });
+
             datePicker.addEventListener('change', (e) => {
+                if (searchKeyword) return;
                 currentDate = e.target.value;
                 calendarCurrentDate = new Date(currentDate);
                 render();
@@ -336,6 +359,10 @@
 
             addForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                if (searchKeyword) {
+                    alertCustom('검색 중에는 새로운 일정을 추가할 수 없습니다. 검색어를 지워주세요.');
+                    return;
+                }
                 const text = taskInput.value.trim();
                 const time = taskTime.value;
                 if (!text) return;
@@ -368,6 +395,8 @@
             });
 
             calBtnToday.addEventListener('click', () => {
+                searchKeyword = '';
+                globalSearchInput.value = '';
                 calendarCurrentDate = new Date();
                 currentDate = getTodayString();
                 datePicker.value = currentDate;
@@ -393,8 +422,7 @@
 
                         let importedCount = 0;
                         
-                        // 엑셀 행을 순회하며 날짜와 내용 파싱 (유연하게 컬럼 탐색)
-                        json.forEach((row, idx) => {
+                        json.forEach((row) => {
                             if (!row || row.length === 0) return;
                             
                             let dateStr = '';
@@ -405,17 +433,14 @@
                                 if (cell === undefined || cell === null) return;
                                 const cellStr = String(cell).trim();
                                 
-                                // 날짜 형식 감지 (YYYY-MM-DD, YYYY.MM.DD, YYYY/MM/DD 또는 엑셀 시리얼 넘버)
                                 if (/^202[6-9][-\.\/]\d{1,2}[-\.\/]\d{1,2}/.test(cellStr)) {
                                     dateStr = cellStr.replace(/[\.\/]/g, '-');
                                 } else if (!dateStr && typeof cell === 'number' && cell > 40000) {
-                                    // 엑셀 날짜 시리얼 번호 처리 (필요시)
                                     const excelDate = new Date((cell - (25567 + 2))*86400*1000);
                                     dateStr = formatDateToYYYYMMDD(excelDate);
                                 } else if (!timeStr && /^\d{1,2}:\d{2}/.test(cellStr)) {
                                     timeStr = cellStr;
                                 } else if (!contentStr && cellStr.length > 0) {
-                                    // 헤더 키워드(날짜, 할일, 상태 등)가 아닌 경우에만 내용으로 채택
                                     if (!['날짜', '할 일', '할일', '시간', '상태'].includes(cellStr)) {
                                         contentStr = cellStr;
                                     }
@@ -426,7 +451,6 @@
                                 if (!tasksData[dateStr]) {
                                     tasksData[dateStr] = [];
                                 }
-                                // 중복 등록 방지 체크
                                 const exists = tasksData[dateStr].some(t => t.text === contentStr);
                                 if (!exists) {
                                     tasksData[dateStr].push({
@@ -496,8 +520,8 @@
             document.getElementById('alert-close-btn').onclick = () => alertBox.remove();
         }
 
-        function toggleTask(id) {
-            const tasks = tasksData[currentDate];
+        function toggleTask(dateStr, id) {
+            const tasks = tasksData[dateStr];
             const task = tasks.find(t => t.id === id);
             if (task) {
                 task.completed = !task.completed;
@@ -506,29 +530,56 @@
             }
         }
 
-        function deleteTask(id) {
-            tasksData[currentDate] = tasksData[currentDate].filter(t => t.id !== id);
-            if (tasksData[currentDate].length === 0) {
-                delete tasksData[currentDate];
+        function deleteTask(dateStr, id) {
+            tasksData[dateStr] = tasksData[dateStr].filter(t => t.id !== id);
+            if (tasksData[dateStr].length === 0) {
+                delete tasksData[dateStr];
             }
             saveData();
             render();
         }
 
         function render() {
-            if(currentDate === getTodayString()) {
-                dateDisplayText.textContent = "오늘의 달성률";
-            } else {
-                dateDisplayText.textContent = "선택한 날의 달성률";
-            }
-
             generateCalendar();
-            const tasks = tasksData[currentDate] || [];
+
+            let tasksToDisplay = [];
             
-            if (tasks.length === 0) {
+            if (searchKeyword) {
+                panelTitleText.textContent = `검색 결과 ("${searchKeyword}")`;
+                dateDisplayText.textContent = "검색된 일정 수";
+                inputSectionWrapper.style.display = 'none'; // 검색 중에는 입력창 숨김
+
+                Object.keys(tasksData).forEach(dateStr => {
+                    tasksData[dateStr].forEach(task => {
+                        if (task.text.toLowerCase().includes(searchKeyword.toLowerCase())) {
+                            tasksToDisplay.push({ ...task, dateStr });
+                        }
+                    });
+                });
+            } else {
+                panelTitleText.textContent = "선택한 일정";
+                inputSectionWrapper.style.display = 'block';
+                if(currentDate === getTodayString()) {
+                    dateDisplayText.textContent = "오늘의 달성률";
+                } else {
+                    dateDisplayText.textContent = "선택한 날의 달성률";
+                }
+                
+                const rawTasks = tasksData[currentDate] || [];
+                tasksToDisplay = rawTasks.map(t => ({ ...t, dateStr: currentDate }));
+            }
+            
+            if (tasksToDisplay.length === 0) {
                 emptyState.classList.remove('hidden');
                 taskList.innerHTML = '';
-                updateProgress(0, 0);
+                if (searchKeyword) {
+                    emptyStateTitle.textContent = "검색 결과가 없습니다";
+                    emptyStateDesc.textContent = "다른 검색어로 입력해보세요.";
+                } else {
+                    emptyStateTitle.textContent = "등록된 일정이 없습니다";
+                    emptyStateDesc.textContent = "새로운 할 일을 추가해보세요!";
+                }
+                updateProgress(0, 0, searchKeyword);
                 return;
             } else {
                 emptyState.classList.add('hidden');
@@ -537,11 +588,10 @@
             taskList.innerHTML = '';
             let completedCount = 0;
 
-            const sortedTasks = [...tasks].sort((a, b) => {
+            const sortedTasks = [...tasksToDisplay].sort((a, b) => {
                 if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                if (a.dateStr !== b.dateStr) return a.dateStr.localeCompare(b.dateStr);
                 if (a.time && b.time) return a.time.localeCompare(b.time);
-                if (a.time) return 1;
-                if (b.time) return -1;
                 return 0;
             });
 
@@ -549,54 +599,60 @@
                 if(task.completed) completedCount++;
 
                 const li = document.createElement('li');
-                li.className = `task-item bg-white p-3.5 rounded-2xl border flex items-center justify-between gap-3 shadow-sm ${task.completed ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-200 hover:border-indigo-300'}`;
+                li.className = `task-item bg-white p-3 rounded-2xl border flex items-center justify-between gap-3 shadow-sm ${task.completed ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-200 hover:border-indigo-300'}`;
                 
-                let timeBadge = '';
+                let badgeInfo = '';
+                if (searchKeyword) {
+                    badgeInfo += `<span class="text-[0.65rem] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono mr-1">${task.dateStr}</span>`;
+                }
                 if (task.time) {
-                    timeBadge = `<div class="text-xs font-medium mt-1 flex items-center gap-1 ${task.completed ? 'text-slate-400' : 'text-indigo-500'}">
-                                    <i class="far fa-clock"></i> ${task.time}
-                                 </div>`;
+                    badgeInfo += `<span class="text-[0.65rem] text-indigo-500 font-medium"><i class="far fa-clock"></i> ${task.time}</span>`;
                 }
 
                 li.innerHTML = `
                     <label class="flex items-start gap-3 cursor-pointer flex-1 group">
                         <div class="relative flex items-center justify-center mt-0.5">
-                            <input type="checkbox" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+                            <input type="checkbox" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.dateStr}', '${task.id}')">
                             <div class="w-5 h-5 border-2 border-slate-300 rounded-lg flex items-center justify-center transition-colors group-hover:border-indigo-400 shrink-0">
                                 <svg class="w-3.5 h-3.5 text-white hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             </div>
                         </div>
                         <div class="flex flex-col flex-1 overflow-hidden">
                             <span class="text-sm sm:text-[0.95rem] transition-all duration-200 break-all leading-tight mt-0.5 ${task.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${task.text}</span>
-                            ${timeBadge}
+                            <div class="mt-1 flex items-center gap-1">${badgeInfo}</div>
                         </div>
                     </label>
-                    <button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors focus:outline-none shrink-0">
+                    <button onclick="deleteTask('${task.dateStr}', '${task.id}')" class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors focus:outline-none shrink-0">
                         <i class="fas fa-trash-alt text-sm"></i>
                     </button>
                 `;
                 taskList.appendChild(li);
             });
 
-            updateProgress(completedCount, tasks.length);
+            updateProgress(completedCount, tasksToDisplay.length, searchKeyword);
         }
 
-        function updateProgress(completed, total) {
+        function updateProgress(completed, total, isSearch) {
             if (total === 0) {
                 progressBar.style.width = '0%';
-                progressText.textContent = '0%';
+                progressText.textContent = isSearch ? '0개' : '0%';
                 return;
             }
-            const percentage = Math.round((completed / total) * 100);
-            progressBar.style.width = `${percentage}%`;
-            progressText.textContent = `${percentage}%`;
-            
-            if(percentage === 100) {
-                progressBar.classList.remove('from-blue-300', 'to-white');
-                progressBar.classList.add('from-green-400', 'to-emerald-300');
+            if (isSearch) {
+                progressBar.style.width = `${Math.round((completed / total) * 100)}%`;
+                progressText.textContent = `${completed}/${total} 완료`;
             } else {
-                progressBar.classList.remove('from-green-400', 'to-emerald-300');
-                progressBar.classList.add('from-blue-300', 'to-white');
+                const percentage = Math.round((completed / total) * 100);
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `${percentage}%`;
+                
+                if(percentage === 100) {
+                    progressBar.classList.remove('from-blue-300', 'to-white');
+                    progressBar.classList.add('from-green-400', 'to-emerald-300');
+                } else {
+                    progressBar.classList.remove('from-green-400', 'to-emerald-300');
+                    progressBar.classList.add('from-blue-300', 'to-white');
+                }
             }
         }
 
